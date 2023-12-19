@@ -25,4 +25,5 @@ logs
 
 .npmrc
 
-prisma
+prisma/dev.db
+prisma/migrations

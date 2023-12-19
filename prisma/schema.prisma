@@ -1,0 +1,115 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+    id           Int    @id @default(autoincrement())
+    email        String @unique
+    passwordHash String // Hashed password for security
+    securityQuestion String?
+    securityAnswer  String? // Hashed for security
+    createdAt    DateTime @default(now())
+    updatedAt    DateTime @updatedAt
+}
+
+model Card {
+  id                   Int      @id @default(autoincrement())
+  front                String
+  back                 String
+  exampleSentence      String?
+  frontPronunciation   String?   // e.g. "nihon"
+  frontCharacter       String?   // e.g. "日本"
+  sentencePronunciation String?   // e.g. "kyou wa nichiyoubi desu"
+  sentenceCharacter    String?   // e.g. "今日は日曜日です"
+  lastReviewed         DateTime?
+  nextReview           DateTime?
+  interval             Int?
+  easeFactor           Float?
+  correctStreak        Int?
+  mistakes             Mistake[]
+  deckId  Int
+  deck    Deck    @relation(fields: [deckId], references: [id])
+}
+
+model Deck {
+  id      Int      @id @default(autoincrement())
+  name    String
+  description String?
+  lastReviewed         DateTime?
+  cards   Card[]
+  verbs   Verb[]
+  threads Thread[]
+}
+
+model Mistake {
+  id          Int      @id @default(autoincrement())
+  card        Card     @relation(fields: [cardId], references: [id]) // <- This sets up the relation
+  cardId      Int
+  timestamp   DateTime @default(now())
+}
+
+model Verb {
+  id       Int          @id @default(autoincrement())
+  value    String
+  meaning  String
+  type     String
+  conjugations Conjugation[]
+  deckId  Int
+  deck    Deck    @relation(fields: [deckId], references: [id])
+}
+
+model Conjugation {
+  id       Int     @id @default(autoincrement())
+  type     String
+  value    String
+  verbId   Int
+  verb     Verb    @relation(fields: [verbId], references: [id])
+}
+
+model Thread {
+  id           Int          @id @default(autoincrement())
+  thread_id    String       @unique
+  createdAt    DateTime     @default(now())
+  messages     ThreadMessage[]
+  deckId       Int
+  deck         Deck         @relation(fields: [deckId], references: [id])
+}
+
+model ThreadMessage {
+  id          Int          @id @default(autoincrement())
+  createdAt   DateTime     @default(now())
+  value       String
+  threadId    String
+  thread      Thread   @relation(fields: [threadId], references: [thread_id])
+
+}
+
+model OpenApiKey {
+  id              Int           @id @default(autoincrement())
+  value           String
+  createdAt       DateTime      @default(now())
+  assistant       Assistant[]
+}
+
+model Assistant {
+  id              Int           @id @default(autoincrement())
+  value           String
+  createdAt       DateTime      @default(now())
+  model           String        @default("gpt-3.5-turbo")
+  openApiKeyId    Int
+  openApiKey      OpenApiKey    @relation(fields: [openApiKeyId], references: [id])
+}
+
+model VoiceKey {
+  id              Int           @id @default(autoincrement())
+  value           String
+  createdAt       DateTime      @default(now())
+}
