@@ -1,5 +1,5 @@
 import { prismaClient } from '../utils/prisma';
-import {reinitializeOpenAIClient} from '../utils/openAIClient'
+import {initializeOpenAIClient} from '../utils/openAIClient'
 const checkExist = async () => {
     try {
         const response = await prismaClient.openApiKey.findFirst()
@@ -29,17 +29,19 @@ export default defineEventHandler(async (event) => {
         if(exist) {
             throw 'apiKey existed'
         }
-        const response = await prismaClient.openApiKey.create({
-            data:{
+        const apiKeyResponse = await prismaClient.openApiKey.create({
+            data: {
                 value: apiKey
             }
-        })
-        await reinitializeOpenAIClient()
+        });
+        await initializeOpenAIClient();
+        
+        // Return a simple success message instead of the whole OpenAI client instance
         return {
             statusCode: 200,
-            statusMessage: 'api added successfully',
-            body: response
-        }
+            statusMessage: 'API key added successfully and OpenAI client reinitialized',
+            body: apiKeyResponse
+        };
     } catch (error) {
         throw createError({
             statusCode: 500,

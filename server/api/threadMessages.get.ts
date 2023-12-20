@@ -1,5 +1,4 @@
 import {prismaClient} from '../utils/prisma'
-import {openAIClient} from '../utils/openAIClient'
 
 const getThreadIdByDeckId = async (deckId: number) => {
     try {

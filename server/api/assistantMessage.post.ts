@@ -1,5 +1,5 @@
 import {prismaClient} from '../utils/prisma'
-import {openAIClient} from '../utils/openAIClient'
+import {getOpenAIClient} from '../utils/openAIClient'
 
 import { getAssistantId } from '../utils/assistant.util'
 import {getThreadIdByDeckId, createThreadByDeckId} from '../utils/thread.util'
@@ -30,7 +30,7 @@ const initThread = async (deckId: number) => {
 
 const executeThread = async (assistant_id: string, thread_id: string) => {
     try {
-        const OpenAIClient = await openAIClient
+        const OpenAIClient = await getOpenAIClient()
         const run = await OpenAIClient.beta.threads.runs.create(thread_id, {
             assistant_id
         });

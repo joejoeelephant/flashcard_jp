@@ -2,29 +2,28 @@ import OpenAI from 'openai';
 import { prismaClient } from './prisma';
 
 declare global {
-  var _openAIClientInstance: Promise<OpenAI> | undefined;
+  var _openAIClientInstance: OpenAI | undefined;
 }
 
-async function initializeOpenAIClient() {
+export async function initializeOpenAIClient() {
   try {
     const apiKey = await prismaClient.openApiKey.findFirst();
     if (!apiKey || !apiKey.value) {
       throw new Error('API key is not defined in the database');
     }
-    return new OpenAI({ apiKey: apiKey.value });
+    if (!global._openAIClientInstance) {
+      global._openAIClientInstance = new OpenAI({ apiKey: apiKey.value });
+      return global._openAIClientInstance
+    }
+    return global._openAIClientInstance
   } catch (error: any) {
     throw new Error(`Failed to initialize OpenAI client: ${error.message}`);
   }
 }
 
-if (!global._openAIClientInstance) {
-  global._openAIClientInstance = initializeOpenAIClient();
-}
-
-// Function to reinitialize the OpenAI client
-export async function reinitializeOpenAIClient() {
-  global._openAIClientInstance = initializeOpenAIClient();
+export async function getOpenAIClient() {
+  if (!global._openAIClientInstance) {
+    await initializeOpenAIClient();
+  }
   return global._openAIClientInstance;
 }
-
-export const openAIClient = global._openAIClientInstance;

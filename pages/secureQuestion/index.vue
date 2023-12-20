@@ -53,7 +53,7 @@
                 securityAnswer: answer.value
             }
         })
-
+        navigateTo('/')
         console.log(data.value)
         console.log(error.value)
     }

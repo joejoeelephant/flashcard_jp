@@ -1,5 +1,5 @@
 import {prismaClient} from './prisma'
-import {openAIClient} from './openAIClient'
+import {getOpenAIClient} from './openAIClient'
 
 export async function getMessagesByThreadId(threadId: string) {
     try {
@@ -30,7 +30,7 @@ export async function saveThreadMesages(threadId: string, messages: any) {
 
 export const createThreadMessages = async (thread_id: string, content: string) => {
     try {
-        const OpenAIClient = await openAIClient
+        const OpenAIClient = await getOpenAIClient()
         const message = await OpenAIClient.beta.threads.messages.create(
             thread_id,
             {

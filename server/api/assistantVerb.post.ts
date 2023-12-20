@@ -1,5 +1,5 @@
 import {prismaClient} from '../utils/prisma'
-import {openAIClient} from '../utils/openAIClient'
+import {getOpenAIClient} from '../utils/openAIClient'
 
 export default defineEventHandler(async (event) => {
     if(event.context.error) {
@@ -8,7 +8,7 @@ export default defineEventHandler(async (event) => {
 
     try {
         const {deckId, verb} = await readBody(event)
-        const OpenAIClient = await openAIClient
+        const OpenAIClient = await getOpenAIClient()
         const verbResponse = await OpenAIClient.chat.completions.create({
             messages: [
                 { 

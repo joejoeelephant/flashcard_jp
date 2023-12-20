@@ -1,4 +1,4 @@
-import {openAIClient} from '../utils/openAIClient'
+import {getOpenAIClient} from '../utils/openAIClient'
 
 export default defineEventHandler(async (event) => {
     if (event.context.error) {
@@ -6,7 +6,7 @@ export default defineEventHandler(async (event) => {
     }
 
     try {
-        const OpenAIClient  = await openAIClient
+        const OpenAIClient  = await getOpenAIClient()
         const list = await OpenAIClient.models.list();
         const response = list.data.filter(item => {
             return (item.id === 'gpt-4' || item.id === 'gpt-3.5-turbo')

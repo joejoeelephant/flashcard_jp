@@ -1,5 +1,5 @@
 import {prismaClient} from './prisma'
-import {openAIClient} from './openAIClient'
+import {getOpenAIClient} from './openAIClient'
 
 export const getAssistantId = async () => {
     try {
@@ -24,8 +24,9 @@ export const getAssistantList = async () => {
 
 export const createAssistantInDB = async () => {
     try {
-        const OpenAIClient  = await openAIClient
-        const newAssistant = await OpenAIClient.beta.assistants.create({
+        const openAIClient = await getOpenAIClient()
+        console.log(openAIClient)
+        const newAssistant = await openAIClient.beta.assistants.create({
             instructions:
               "You are a personal japanese language tutor.",
             name: "Japanese Language Tutor",

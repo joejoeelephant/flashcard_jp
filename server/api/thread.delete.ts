@@ -1,5 +1,5 @@
 import {prismaClient} from '../utils/prisma'
-import {openAIClient} from '../utils/openAIClient'
+import {getOpenAIClient} from '../utils/openAIClient'
 
 const getThreadIdByDeckId = async (deckId: number) => {
     try {
@@ -38,7 +38,7 @@ export default defineEventHandler(async (event) => {
             });
         }
         console.log(thread_id)
-        const OpenAIClient = await openAIClient
+        const OpenAIClient = await getOpenAIClient()
         const openai_response = await OpenAIClient.beta.threads.del(String(thread_id));
         const db_messages_response = await prismaClient.threadMessage.deleteMany({
             where: {

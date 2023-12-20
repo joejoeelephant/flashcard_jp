@@ -1,5 +1,5 @@
 import {prismaClient} from './prisma'
-import {openAIClient} from './openAIClient'
+import {getOpenAIClient} from './openAIClient'
 
 export const getThreadIdByDeckId = async (deckId: number) => {
     try {
@@ -16,7 +16,7 @@ export const getThreadIdByDeckId = async (deckId: number) => {
 
 export const createThreadByDeckId = async (deckId: number) => {
     try {
-        const OpenAIClient = await openAIClient
+        const OpenAIClient = await getOpenAIClient()
         const thread =  await OpenAIClient.beta.threads.create();
         const response = await prismaClient.thread.create({
             data: {

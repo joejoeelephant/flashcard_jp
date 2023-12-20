@@ -1,5 +1,5 @@
 import { prismaClient } from '../utils/prisma';
-import { openAIClient } from '../utils/openAIClient';
+import { getOpenAIClient } from '../utils/openAIClient';
 export default defineEventHandler(async (event) => {
     if (event.context.error) {
         throw createError(event.context.error);
@@ -9,7 +9,7 @@ export default defineEventHandler(async (event) => {
         if(isNaN(Number(id)) || !assistantId || !model) {
             throw 'parameter invalid'
         }
-        const OpenAIClient = await openAIClient
+        const OpenAIClient = await getOpenAIClient()
         await OpenAIClient.beta.assistants.update(
             assistantId,
             {
