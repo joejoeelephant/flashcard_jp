@@ -20,7 +20,7 @@ COPY . .
 RUN npx prisma generate
 
 # Prisma generate
-RUN npx prisma migrate dev --init
+RUN npx prisma migrate dev --name init
 
 # Build the Next.js application
 RUN npm run build
