@@ -10,9 +10,6 @@ COPY package*.json ./
 # Install dependencies
 RUN npm install
 
-# Prisma setup with SQLite
-RUN npx prisma init --datasource-provider sqlite
-
 # Copy the rest of the application into the Docker image
 COPY . .
 
