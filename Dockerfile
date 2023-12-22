@@ -26,4 +26,4 @@ RUN npm run build
 EXPOSE 3000
 
 # Define the Docker image's behavior at runtime
-CMD [ "npm", "start" ]
+CMD [ "npm", "run", "preview" ]
