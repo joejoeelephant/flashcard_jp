@@ -25,13 +25,16 @@
                 <el-button type="primary" :disabled="loading" @click="submitForm(ruleFormRef)">Submit</el-button>
                 <el-button :disabled="loading" @click="resetForm(ruleFormRef)">Reset</el-button>
             </el-form-item>
-            
+            <div>
+                <el-button @click="clearUsers">clearUsers</el-button>
+            </div>
         </el-form>
     </div>
 </template>
 <script setup lang="ts">
     import type { FormInstance, FormRules } from 'element-plus'
     import { reactive, ref } from 'vue'
+    import { validateEmail, validatePass, validatePass2 } from '~/composables/useValidation';
 
     definePageMeta({
         layout: 'login'
@@ -45,47 +48,26 @@
     const ruleForm = reactive({
         pass1: '',
         pass2: '',
-        email: '',
+        email: 'admin@qq.com',
     })
 
-    const validateEmail = (rule: any, value: any, callback: any) => {
-        const regex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
-        if (value === '') {
-            callback(new Error('Please input the email'))
-        } else {
-            if (!regex.test(value)) {
-                callback(new Error('Please input the valid email'))
-                
-            }
-            callback()
-        }
-    }
+    const validatePass1 = validatePass
+    let ValidatePass2;
 
-    const validatePass1 = (rule: any, value: any, callback: any) => {
-        if (value.trim() === '') {
-            callback(new Error('Please input the password'))
-        } else {
-            callback()
-        }
-    }
+    watch(() => ruleForm.pass1, (newVal) => {
+        ValidatePass2 = validatePass2(newVal)
+    })
 
-    const validatePass2 = (rule: any, value: any, callback: any) => {
-        if (value.trim() !== ruleForm.pass1) {
-            callback(new Error('Password word not match'))
-        } else {
-            callback()
-        }
-    }
+
 
     const rules = reactive<FormRules<typeof ruleForm>>({
         pass1: [{ validator: validatePass1, trigger: 'blur' }],
-        pass2: [{ validator: validatePass2, trigger: 'blur' }],
+        pass2: [{ validator: ValidatePass2, trigger: 'blur' }],
         email: [{ validator: validateEmail, trigger: 'blur' }],
     })
 
     const requestSignUp = async () => {
         const {email, pass1, pass2} = ruleForm
-        console.log(email, pass1, pass2)
         loading.value = true
         const {data, pending, error, refresh} = await useFetch("/api/signup", {
             method: 'post',
@@ -101,6 +83,8 @@
 
     const submitForm = (formEl: FormInstance | undefined) => {
         if (!formEl) return
+        console.log(ruleForm.pass1)
+
         formEl.validate((valid) => {
             if (valid) {
                 requestSignUp()
@@ -114,6 +98,14 @@
     const resetForm = (formEl: FormInstance | undefined) => {
         if (!formEl) return
         formEl.resetFields()
+    }
+
+    const clearUsers = async () => {
+        const {data, error} = await useFetch("/api/users", {
+            method: 'delete'
+        })
+        console.log(data.value)
+        console.log(error.value)
     }
 </script>
 <style lang="">

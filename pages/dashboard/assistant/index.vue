@@ -6,8 +6,6 @@
     </div>
 </template>
 <script setup lang="ts">
-import {customFetch} from '~/utils/customFetch'
-import { ElNotification } from 'element-plus'
 
     definePageMeta({
         layout: 'dashboard',

@@ -5,10 +5,7 @@ export default defineEventHandler(async (event) => {
     // Extract the card's id and data from the request body
     try {
         // Use prismaClient to update the card
-        const response = await prismaClient.user.findUnique({
-            where: {
-                id: 1,
-            },
+        const response = await prismaClient.user.findFirst({
             select: {
                 securityQuestion: true
             }

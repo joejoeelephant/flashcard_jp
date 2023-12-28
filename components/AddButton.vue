@@ -24,7 +24,6 @@
 
 </template>
 <script setup lang="ts">
-import {customFetch} from '~/utils/customFetch'
     const visible = ref(false)
     const deckModalVisible = ref(false)
     const cardModalVisible = ref(false)

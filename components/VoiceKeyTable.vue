@@ -22,72 +22,28 @@
                     <el-input v-model="apiKey"/>
                 </div>
                 <div>
-                    <el-button @click="createApiKey">create</el-button>
+                    <el-button @click="handleCreateApiKey">create</el-button>
                 </div>
             </div>
         </div>
     </ClientOnly>
 </template>
 <script setup lang="ts">
-import {customFetch} from '~/utils/customFetch'
-import { ElNotification } from 'element-plus'
-    const ApiKeys = ref<any>([])
+    import { useVoiceApiKeys } from '~/composables/useVoiceApiKeys';
+    const { apiKeys: ApiKeys, fetchApiKeys, createApiKey, deleteApiKey } = useVoiceApiKeys()
     const apiKey = ref('')
-    const showCreate = ref(false)
-
+    const showCreate = ref(true)
+    await fetchApiKeys()
     watch(() => ApiKeys.value, (newVal) => {
         showCreate.value = (newVal.length === 0)
     })
 
-    const getApiKey = async () => {
-        const {data, error} = await customFetch<any, any>('/api/voiceKey', {method: 'get'})
-        if(data.value.body) {
-            ApiKeys.value = [data.value.body]
-        }else {
-            showCreate.value = true
-        }
-        console.log(data.value)
-        console.log(error.value)
-    }
-    await getApiKey()
-
-    const createApiKey = async () => {
-        const {data, error} = await customFetch<any, any>('/api/voiceKey', {
-            method: 'post',
-            body: {
-                voiceKey: apiKey.value
-            }
-        })
-
-        console.log(data.value)
-        console.log(error.value)
-
-        if(data.value && data.value.body) {
-            ApiKeys.value = [data.value.body]
-            apiKey.value = ""
-        }
-
-        if(error.value) {
-            ElNotification({
-                title: 'error',
-                message: String(error.value),
-                type: 'warning',
-            })
-        }
+    const handleCreateApiKey = async () => {
+        const {data, error} = await createApiKey(apiKey.value)
     }
 
-    const deleteApiKey = async (id: number) => {
-        const {data, error} = await customFetch('/api/voiceKey', {
-            method: "delete",
-            query: {
-                id
-            }
-        })
-        if(data.value) {
-            ApiKeys.value = []
-        }
-        console.log(data.value)
-        console.log(error.value)
+    const handleDeleteApiKey = async (id: number) => {
+        const {data, error} = await deleteApiKey(id)
     }
 
 </script>

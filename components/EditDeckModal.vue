@@ -26,17 +26,16 @@
     </ClientOnly>
 </template>
 <script setup lang="ts">
-import {customFetch} from '~/utils/customFetch'
-import { ElNotification } from 'element-plus'
-
+import {useDeckApi} from '~/composables/useDeckApi'
     const props =  defineProps(['isVisible', 'deckData']);
     const emit = defineEmits(['hideModal'])
     const nameRef = ref('')
     const descRef = ref('') 
-
+    const {updateDeck} = useDeckApi()
     watch(
         () => props.deckData,  // <-- watching deckData
         (newVal) => {
+            if(!newVal) return
             nameRef.value = newVal.name;
             descRef.value = newVal.description;
         },
@@ -61,18 +60,21 @@ import { ElNotification } from 'element-plus'
 
     const putDeck = async () => {
         if(!checkName()) return;
-        const {data} = await customFetch('/api/deck', {
-            method: 'put',
-            body: {
-                id: props.deckData.id,
-                action: 'updateContent',
-                payload: {
-                    name: nameRef.value,
-                    description: descRef.value
-                }
-            }
-        })
-        console.log(data.value)
+        const {data, error} = await updateDeck(props.deckData.id, nameRef.value, descRef.value)
+
+        if(data.value) {
+            ElMessage({
+                type: 'success',
+                message: 'deck updated'
+            })
+        }
+
+        if(error.value) {
+            ElMessage({
+                type: 'warning',
+                message: error.value.statusMessage
+            })
+        }
     }
 </script>
 <style lang="">

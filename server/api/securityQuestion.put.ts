@@ -16,9 +16,13 @@ export default defineEventHandler(async (event) => {
         const hashedSecurityAnswer = await bcrypt.hash(securityAnswer, 10);
 
         // Use prismaClient to update the card
+        const user  = await prismaClient.user.findFirst()
+        if(!user) {
+            throw 'user not existed'
+        }
         const updatedUser = await prismaClient.user.update({
             where: {
-                id: 1,
+                id: user.id,
             },
             data: {
                 securityQuestion,

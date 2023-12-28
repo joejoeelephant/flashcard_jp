@@ -27,6 +27,7 @@
 <script setup lang="ts">
     import type { FormInstance, FormRules } from 'element-plus'
     import { reactive, ref } from 'vue'
+    import { validatePass, validatePass2 } from '~/composables/useValidation';
 
     definePageMeta({
         layout: 'login',
@@ -40,25 +41,17 @@
         pass2: '',
     })
 
-    const validatePass1 = (rule: any, value: any, callback: any) => {
-        if (value.trim() === '') {
-            callback(new Error('Please input the password'))
-        } else {
-            callback()
-        }
-    }
+    const validatePass1 = validatePass
 
-    const validatePass2 = (rule: any, value: any, callback: any) => {
-        if (value.trim() !== ruleForm.pass1) {
-            callback(new Error('Password word not match'))
-        } else {
-            callback()
-        }
-    }
+    let ValidatePass2;
+    watch(() => ruleForm.pass1, (newVal) => {
+        ValidatePass2 = validatePass2(newVal)
+    })
+
 
     const rules = reactive<FormRules<typeof ruleForm>>({
         pass1: [{ validator: validatePass1, trigger: 'blur' }],
-        pass2: [{ validator: validatePass2, trigger: 'blur' }],
+        pass2: [{ validator: ValidatePass2, trigger: 'blur' }],
     })
 
     const resetPassword = async () => {

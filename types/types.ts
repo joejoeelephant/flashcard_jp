@@ -8,7 +8,6 @@ export interface CardData {
     sentencePronunciation?: string   // e.g. "kyou wa nichiyoubi desu"
     sentenceCharacter?: string // e.g. "今日は日曜日です"
     exampleSentence?: string
-    tags?: Tag[]
     deckName: string
 }
 
@@ -27,6 +26,7 @@ export type Deck = {
     id: number;
     name: string;
     description?: string;
+    lastReviewed?: Date
 }
 
 export type Mistake = {
@@ -34,4 +34,26 @@ export type Mistake = {
     card: Card;
     cardId: number;
     timestamp: Date;
-  }
+}
+
+export type Verb = {
+    "id": number;
+    "base": string;
+    "meaning": string;
+    "nai": string;
+    "masu": string;
+    "ba": string;
+    "volitional": string;
+    "te": string;
+}
+
+export type GeneralResponse<T> = {
+    body: T
+    statusCode: number;
+    statusMessage: string;
+}
+
+export type ErrorResponse = {
+    statusCode: number;
+    statusMessage: string;
+}

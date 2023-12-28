@@ -1,6 +1,5 @@
 <template lang="">
     <div class="container mx-auto flex flex-col justify-between" :style="{minHeight: '760px'}">
-        <ClientOnly>
             <div class="w-full grid grid-cols-2 md:grid-cols-6 gap-4" :style="{minHeight: '600px'}">
                 <Card v-for="(item,i) in cardsList" :key="i" :cardData="item"/>
             </div>
@@ -23,74 +22,39 @@
                         background 
                         layout="prev, pager, next" 
                         :page-size="pageSize" 
-                        :total="totalCardsCounts"
+                        :total="totalCardsCount"
                         @prev-click="prevPage"
                         @next-click="nextPage"
                         @current-change="changePage"
                     />
                 </div>
             </div>
-        </ClientOnly>
     </div>
     
 </template>
 <script setup lang="ts">
-import { CardData } from '~/types/types';
-import { customFetch } from '#imports';
-import { ElLoading } from 'element-plus'
+import { useCardsFetcher } from '~/composables/useCardsFetcher'
 
-    interface CardsApiResponse {
-        body: {
-            cards:CardData[],
-            totalCards: number
-        };
-        statusCode: number;
-        statusMessage: string;
-    }
     definePageMeta({
         middleware: ["auth"]
     })
     const route = useRoute()
     const [deckId] = route.params.slug
-    const currentCard = ref<CardData | null>(null);
-    const cardsList = ref<CardData[]>([])
     const page = ref<number>(1)
     const pageSize = ref<number>(18)
-    const totalCardsCounts = ref<number>(0)
-    const loading = ref<boolean>(false)
-    
-    watch(() => page.value, (newVal) => {
-        fetchCards()
-    })
 
-    const fetchCards = async () => {
-        loading.value = true;
-        let loadingInstance = ElLoading.service(
-            {
-                lock: true,
-                text: 'Loading',
-                background: 'rgba(0, 0, 0, 0.7)',
-            }
-        )
-        const pageValue = Number(page.value)
-        const pageSizeValue = Number(pageSize.value)
-        const {data, error} = await customFetch<CardsApiResponse, any>('/api/cards', {
-            method: 'get',
-            query: {
-                page: pageValue,
-                pageSize: pageSizeValue,
-                deckId: deckId
-            }
-        })
-        loadingInstance && loadingInstance.close()
-        loading.value = false
-        cardsList.value = data.value?.body.cards || []
-        totalCardsCounts.value = data.value?.body.totalCards || 0
-        console.log(data.value)
+    if(!deckId) {
+        throw createError({
+            statusCode: 400,
+            statusMessage: 'deckId is required',
+        });
     }
 
-    onMounted(() => {
-        fetchCards()
+    const { cardsList, totalCardsCount, loading, fetchCards } = useCardsFetcher()
+    await fetchCards(deckId, page.value, pageSize.value)
+
+    watch(() => page.value, async (newVal) => {
+        await fetchCards(deckId, page.value, pageSize.value)
     })
 
     const prevPage = () => {

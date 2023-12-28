@@ -5,7 +5,6 @@ export default defineEventHandler(async (event) => {
     if(event.context.error) {
         throw createError(event.context.error);
     }
-
     try {
         const response = await createAssistantInDB()
         return {

@@ -13,11 +13,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // Find the user in the database by email
-    const user = await prismaClient.user.findUnique({
-        where: {
-            email: email
-        }
-    });
+    const user = await prismaClient.user.findFirst();
 
     // If user not found, return error response
     if (!user) {

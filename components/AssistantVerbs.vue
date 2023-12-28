@@ -48,16 +48,17 @@
      </ClientOnly>
 </template>
 <script setup lang="ts">
-import {customFetch} from '~/utils/customFetch'
-import { ElNotification } from 'element-plus'
+import { useVerbsFetcher } from '~/composables/useVerbsFetcher';
+
 
     const props =  defineProps(['isVisible']);
     const emits = defineEmits(['hideModal', 'sendMessage'])
     const route = useRoute()
     const [deckId] = route.params.slug
-    const verbs = ref<any[]>([])
     const verbRadio = ref('')
     const currentVerb = ref<any>(null)
+    const { verbs, loading, fetchVerbs } = useVerbsFetcher()
+    await fetchVerbs(Number(deckId))
 
     watch(() =>  verbRadio.value, (newVal) => {
         const data = verbs.value.find(el => el.base === newVal)
@@ -70,7 +71,8 @@ import { ElNotification } from 'element-plus'
 
     const explaine = () => {
         if(!currentVerb.value) return
-        const text = `Let's focus on the verb '${currentVerb.value.base}' which means '${currentVerb.value.meaning}.' Could you first give a brief explanation of its general use in Japanese?`
+        const text = `Let's focus on the verb '${currentVerb.value.base}' which means '${currentVerb.value.meaning}.' 
+                    Could you first give a brief explanation of its general use in Japanese?`
         emits('sendMessage', text)
     }
 
@@ -108,23 +110,7 @@ import { ElNotification } from 'element-plus'
         console.log(text)
         emits('sendMessage', text)
     }
-    
 
-    const fetchVerbs = async () => {
-        const {data, error} = await customFetch<any, any>('/api/verbs', {
-            method: 'get',
-            query: {
-                deckId: deckId
-            }
-        })
-        if(data.value) {
-            verbs.value = data.value.body
-        }
-        console.log(data.value)
-        console.log(error.value)
-    }
-
-    await fetchVerbs()
 </script>
 <style lang="">
     

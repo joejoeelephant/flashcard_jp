@@ -40,10 +40,6 @@
     }
     const navItems: NavItem[] = [
         {
-            name: "cards",
-            url: "/cards"
-        },
-        {
             name: "verbs",
             url: "/verbs"
         },

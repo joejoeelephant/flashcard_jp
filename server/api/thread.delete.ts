@@ -37,8 +37,10 @@ export default defineEventHandler(async (event) => {
                 statusMessage: 'thread_id is null'
             });
         }
-        console.log(thread_id)
         const OpenAIClient = await getOpenAIClient()
+        if(!OpenAIClient) {
+            throw 'OpenAIClient undefined'
+        }
         const openai_response = await OpenAIClient.beta.threads.del(String(thread_id));
         const db_messages_response = await prismaClient.threadMessage.deleteMany({
             where: {

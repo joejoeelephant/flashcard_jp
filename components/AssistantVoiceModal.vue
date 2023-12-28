@@ -26,7 +26,6 @@
     </ClientOnly>
 </template>
 <script setup lang="ts">
-    import {customFetch} from '~/utils/customFetch'
     import { ElLoading } from 'element-plus'
 import { RenameAndNestPayloadKeys } from '@prisma/client/runtime/library';
     const props =  defineProps(['isVisible']);
@@ -38,7 +37,7 @@ import { RenameAndNestPayloadKeys } from '@prisma/client/runtime/library';
     }
 
     const getVoiceKey = async () => {
-        const {data, error} = await customFetch<any, any>('/api/voiceKey', {method: 'get'})
+        const {data, error} = await useFetch<any, any>('/api/voiceKey', {method: 'get'})
         return data.value.body
     }
 
@@ -76,7 +75,7 @@ import { RenameAndNestPayloadKeys } from '@prisma/client/runtime/library';
             })
         };
 
-        const {data, error} = await customFetch<any, any>('https://api.elevenlabs.io/v1/text-to-speech/pNInz6obpgDQGcFmaJgB', options)
+        const {data, error} = await useFetch<any, any>('https://api.elevenlabs.io/v1/text-to-speech/pNInz6obpgDQGcFmaJgB', options)
         loadingIcon.close()
         console.log(data.value)
         console.log(error.value)

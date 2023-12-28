@@ -31,6 +31,9 @@ const initThread = async (deckId: number) => {
 const executeThread = async (assistant_id: string, thread_id: string) => {
     try {
         const OpenAIClient = await getOpenAIClient()
+        if(!OpenAIClient) {
+            throw 'OpenClient undefined'
+        }
         const run = await OpenAIClient.beta.threads.runs.create(thread_id, {
             assistant_id
         });

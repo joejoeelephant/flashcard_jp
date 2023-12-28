@@ -18,15 +18,15 @@
                 </div>
             </div>
             <div>
-                <el-button @click="confirm" type="primary">Confirm</el-button>
+                <el-button @click="confirm" type="primary" :loading="loading">Confirm</el-button>
             </div>
         </div>
     </div>
 </template>
 <script setup lang="ts">
-    import {customFetch} from '~/utils/customFetch'
     definePageMeta({
         layout: 'login',
+        middleware: ["auth"]
     })
     const options = [
         {
@@ -44,15 +44,17 @@
     ]
     const question = ref("")
     const answer = ref("")
-
+    const loading = ref(false)
     const confirm = async () => {
-        const {data, error} = await customFetch('/api/securityQuestion', {
+        loading.value = true
+        const {data, error} = await useFetch('/api/securityQuestion', {
             method: 'put',
             body: {
                 securityQuestion: question.value,
                 securityAnswer: answer.value
             }
         })
+        loading.value = true
         navigateTo('/')
         console.log(data.value)
         console.log(error.value)

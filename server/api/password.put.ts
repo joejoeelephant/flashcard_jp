@@ -14,9 +14,13 @@ export default defineEventHandler(async (event) => {
 
     try {
         // Create a new user in the database
-        const user = await prismaClient.user.update({
+        const user  = await prismaClient.user.findFirst()
+        if(!user) {
+            throw "user not existed"
+        }
+        const updateResponse = await prismaClient.user.update({
             where: {
-                id: 1
+                id: user.id
             },
             data: {
                 passwordHash: hashedPassword,

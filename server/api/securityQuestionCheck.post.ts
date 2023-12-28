@@ -13,11 +13,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // Find the user in the database by email
-    const user = await prismaClient.user.findUnique({
-        where: {
-            id: 1
-        }
-    });
+    const user = await prismaClient.user.findFirst()
 
     // If user not found, return error response
     if (!user) {
@@ -26,7 +22,12 @@ export default defineEventHandler(async (event) => {
             statusMessage: 'User not found.',
         })
     }
-
+    if(!user.securityAnswer) {
+        throw createError({
+            statusCode: 404,
+            statusMessage: 'securityAnswer not found.',
+        })
+    }
     // Check if the provided password matches the one in the database
     const isValidPassword = await bcrypt.compare(answer, user.securityAnswer);
 

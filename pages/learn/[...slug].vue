@@ -53,7 +53,7 @@
             </div>
         </div>
         <div v-if="isFlipped" class="p-8 grid grid-cols-3 gap-4 text-center text-white">
-            <div class="rounded-md py-2 bg-rose-400" @click="cardAction('again')">
+            <div class="rounded-md py-2 bg-rose-400" @click="sendCardAction('again')">
                 <div>
                     Again
                 </div>
@@ -61,7 +61,7 @@
                     1min
                 </div>
             </div>
-            <div class="rounded-md py-2 bg-blue-400" @click="cardAction('good')">
+            <div class="rounded-md py-2 bg-blue-400" @click="sendCardAction('good')">
                 <div>
                     Good
                 </div>
@@ -69,7 +69,7 @@
                     1d
                 </div>
             </div>
-            <div class="rounded-md py-2 bg-green-400" @click="cardAction('easy')">
+            <div class="rounded-md py-2 bg-green-400" @click="sendCardAction('easy')">
                 <div>
                     Easy
                 </div>
@@ -94,16 +94,8 @@
     </el-dialog>
 </template>
 <script lang="ts" setup>
-    import { CardData } from '~/types/types';
-    import { customFetch } from '#imports';
-    
-    interface CardsApiResponse {
-        body: {
-            cards:CardData[],
-        };
-        statusCode: number;
-        statusMessage: string;
-    }
+    import { CardData} from '~/types/types'
+    import {useDueCardsApi} from '~/composables/useDueCardsApi'
     definePageMeta({
         middleware: ["auth"]
 
@@ -111,6 +103,7 @@
 
     const route = useRoute()
     const router = useRouter()
+    const { getCards, updateLastReviewed, cardAction } = useDueCardsApi()
     const [deckId] = route.params.slug
     const isFlipped = ref<boolean>(false)
     const cardsArr = ref<CardData[]>([])
@@ -124,13 +117,8 @@
         });
     }
 
-    const getCards = async () => {
-        const {data, error} = await customFetch<CardsApiResponse, any>('/api/due', {
-            method: "get",
-            query: {
-                deckId
-            }
-        })
+    const initCards = async () => {
+        const {data, error} = await getCards(deckId)
 
         if(data.value) {
             const {cards} = data.value.body
@@ -138,19 +126,8 @@
         }
     }
 
-    const updateLastReviewed = async () => {
-        const {data, error} = await customFetch('/api/deck', {
-            method: "put",
-            body: {
-                id: deckId,
-                action: "updateLastReviewed"
-            }
-        })
-
-    }
-
-    await getCards();
-    await updateLastReviewed();
+    await initCards();
+    await updateLastReviewed(deckId);
 
     if(!cardsArr.value.length) {
         dialogVisible.value = true
@@ -158,15 +135,9 @@
 
    
 
-    const cardAction = async (action: string): Promise<void> => {
+    const sendCardAction = async (action: string) => {
         const {id} = cardsArr.value[cardIndex.value]
-        const {data} = await customFetch('/api/cardAction', {
-            method: 'put',
-            body: {
-                id,
-                action
-            }
-        })
+        const {data} = await cardAction(id, action)
         nextCard()
     }
     

@@ -36,7 +36,6 @@
     </div>
 </template>
 <script setup lang="ts">
-    import { customFetch } from '#imports';
     interface CardsState {
         newCards: Number,
         learningCards: Number,
@@ -54,7 +53,7 @@
         reviewingCards: 0
     })
     const getCardsState = async () => {
-        const {data, error} = await customFetch<CardsStateApiResponse, any>('/api/cardStateFetcher', {
+        const {data, error} = await useFetch<CardsStateApiResponse, any>('/api/cardStateFetcher', {
             method: "get",
             query: {
                 deckId
@@ -66,7 +65,6 @@
             states.reviewingCards = data.value.body.reviewingCards
         }
         console.log(data.value)
-        
     }
 
     await getCardsState()

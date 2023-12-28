@@ -1,9 +1,9 @@
 <template lang="">
     <div class="border-b-2 border-slate-200 flex justify-between ">
-        <el-select v-model="deckId" class="m-2" placeholder="Select" size="large">
+        <el-select v-model="deckId" class="m-2" placeholder="Select" size="large" :loading="loading">
             <el-option label="All" value="" />
             <el-option
-                v-for="item in deckOptions"
+                v-for="item in decks"
                 :key="item.id"
                 :label="item.name"
                 :value="item.id"
@@ -17,23 +17,13 @@
     </div>
 </template>
 <script lang="ts" setup>
-import {customFetch} from '~/utils/customFetch'
-interface Deck {
-    id: string;
-    name: string;
-    description: string;
-}
-interface ApiResponse {
-    body: Deck[];
-    statusCode: number;
-    statusMessage: string;
-}
+    import { useDecksFetcher } from '~/composables/useDecksFetcher'
 
-interface Filter {
-    deckId: string,
-    frontText: string,
-    backText: string
-}
+    interface Filter {
+        deckId: string,
+        frontText: string,
+        backText: string
+    }
 
     const {filter} = defineProps({
         filter: Object as PropType<Filter>
@@ -42,7 +32,9 @@ interface Filter {
     const deckId = ref('')
     const frontText = ref('')
     const backText = ref('')
-    const deckOptions = ref<Deck[]>([])
+
+    const {loading, decks, fetchDecks } = useDecksFetcher()
+    fetchDecks();
 
     deckId.value = filter?.deckId || ""
     frontText.value = filter?.frontText || ""
@@ -53,22 +45,12 @@ interface Filter {
     })
 
 
-    const fetchDecks = async () => {
-        const { data, pending, error } = await customFetch<ApiResponse, any>('/api/decks', {method: "get"})
-        if(data.value) {
-            deckOptions.value = data.value.body
-        }
-    }
-
-    await fetchDecks();
-
     const filterHandler = () => {
         const payload = {
             deckId: deckId.value,
             frontText: frontText.value.trim(),
             backText: backText.value.trim()
         }
-
         emits('setFilter', payload)
     }
 </script>

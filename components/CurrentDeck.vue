@@ -3,7 +3,7 @@
         <div class="flex flex-col gap-2">
             <p class="font-semibold">{{deckData.name}}</p>
             <p class="text-sm text-slate-500">
-                You have learned {{states.reviewingCards + states.learningCards}} words
+                You have learned {{state.reviewingCards + state.learningCards}} words
             </p>
             <div class="flex flex-wrap">
                 <el-tag
@@ -11,21 +11,21 @@
                     class="mx-1"
                     effect="dark"
                 >
-                    {{states.newCards}} New
+                    {{state.newCards}} New
                 </el-tag>
                 <el-tag
                     type='success'
                     class="mx-1"
                     effect="dark"
                 >
-                    {{states.learningCards}} Learning
+                    {{state.learningCards}} Learning
                 </el-tag>
                 <el-tag
                     type=''
                     class="mx-1 mt-1 md:mt-0"
                     effect="dark"
                 >
-                    {{states.reviewingCards}} Reviewing
+                    {{state.reviewingCards}} Reviewing
                 </el-tag>
             </div>
             <div>
@@ -40,43 +40,14 @@
     </div>
 </template>
 <script setup lang="ts">
-    interface CardsState {
-        newCards: Number,
-        learningCards: Number,
-        reviewingCards: Number
-    }
-    interface CardsStateApiResponse {
-        body: CardsState;
-        statusCode: number;
-        statusMessage: string;
-    }
+    import { useCardState } from '~/composables/useCardState'
+
     const {deckData} = defineProps(['deckData'])
     const router = useRouter()
-    const states = reactive<CardsState>({
-        newCards: 0,
-        learningCards: 0,
-        reviewingCards: 0
-    })
+    const { state, fetchCardState } = useCardState()
+    await fetchCardState(deckData.id)
 
-    const getCardsState = async () => {
-        const {data, error} = await customFetch<CardsStateApiResponse, any>('/api/cardStateFetcher', {
-            method: "get",
-            query: {
-                deckId: Number(deckData.id)
-            }
-        })
-        if(data.value) {
-            states.newCards = data.value.body.newCards
-            states.learningCards = data.value.body.learningCards
-            states.reviewingCards = data.value.body.reviewingCards
-        }
-        // console.log(data.value)
-        
-    }
-
-    await getCardsState()
-
-    let percent = Math.ceil((Number(states.reviewingCards) + Number(states.learningCards)) / (Number(states.newCards) + Number(states.learningCards) + Number(states.reviewingCards)) * 100)
+    let percent = Math.ceil((Number(state.value.reviewingCards) + Number(state.value.learningCards)) / (Number(state.value.newCards) + Number(state.value.learningCards) + Number(state.value.reviewingCards)) * 100)
     percent = isNaN(percent) ? 0 : percent
     
     const gotoLearn = () => {

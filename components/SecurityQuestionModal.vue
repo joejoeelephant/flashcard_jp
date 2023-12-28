@@ -16,43 +16,31 @@
                     <el-input v-model="answer" placeholder="Please input anwer" size="large"/>
                 </div>
                 <div class="flex justify-center">
-                    <el-button type="primary" @click="sendAnswer">confirm</el-button>
+                    <el-button type="primary" @click="handleCheckAnswer">confirm</el-button>
                 </div>
             </div>
         </el-dialog>
     </ClientOnly>  
 </template>
 <script setup lang="ts">
-import {customFetch} from '~/utils/customFetch'
-
+    import { useSecurityQuestion } from '~/composables/useSecurityQuestion';
     const props = defineProps(['isVisible'])
     const emits = defineEmits(['hideModal'])
-    const question = ref("")
     const answer = ref("")
+    const {question, fetchQuestion, checkAnswer} = useSecurityQuestion()
+    await fetchQuestion()
 
-    const getQuestion = async () => {
-        const {data, error} = await customFetch<any, any>('/api/securityQuestion', {method: 'get'})
-        if(data.value) {
-            question.value = data.value.body.securityQuestion
-        }
-        console.log(data.value)
-        console.log(error.value)
-    }
-
-    await getQuestion()
-
-    const sendAnswer = async () => {
-        const {data, error} = await customFetch<any, any>('/api/securityQuestionCheck', {
-            method: 'post',
-            body: {
-                answer: answer.value
-            }
-        })
+    const handleCheckAnswer = async () => {
+        const {data, error} = await checkAnswer(answer.value)
         if(data.value) {
             navigateTo('/resetPass')
         }
-        console.log(data.value)
-        console.log(error.value)
+        if(error.value) {
+            ElMessage({
+                message: error.value.statusMessage,
+                type: 'warning'
+            })
+        }
     }
 
     const hideModal = () => {

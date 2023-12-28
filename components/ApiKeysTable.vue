@@ -22,52 +22,43 @@
                     <el-input v-model="apiKey"/>
                 </div>
                 <div>
-                    <el-button @click="createApiKey">create</el-button>
+                    <el-button @click="handleCreateApiKey">create</el-button>
                 </div>
             </div>
         </div>
     </ClientOnly>
 </template>
 <script setup lang="ts">
-import {customFetch} from '~/utils/customFetch'
-import { ElNotification } from 'element-plus'
+import { useOpenApi } from '~/composables/useOpenApi';
     const emits = defineEmits(['setAssistants', 'setApiKeyExist'])
     const ApiKeys = ref<any>([])
     const apiKey = ref('')
     const showCreate = ref(false)
+    const {getApiKey, createApiKey, deleteApiKey, createAssistant, deleteAsistants} = useOpenApi()
 
     watch(() => ApiKeys.value, (newVal) => {
         showCreate.value = (newVal.length === 0)
     })
 
-    const getApiKey = async () => {
-        const {data, error} = await customFetch<any, any>('/api/apiKey', {method: 'get'})
-        if(data.value.body) {
-            ApiKeys.value = [data.value.body]
-            emits('setApiKeyExist', true)
-        }else {
+    const handleGetApiKey = async () => {
+        const {data, error} = await getApiKey()
+        if(!data.value?.body) {
             showCreate.value = true
+            console.log(error.value)
+            return;
         }
-        console.log(data.value)
-        console.log(error.value)
+        ApiKeys.value = [data.value.body]
+        emits('setApiKeyExist', true)
     }
-    await getApiKey()
+    await handleGetApiKey()
 
-    const createApiKey = async () => {
-        const {data, error} = await customFetch<any, any>('/api/apiKey', {
-            method: 'post',
-            body: {
-                apiKey: apiKey.value
-            }
-        })
+    const handleCreateApiKey = async () => {
+        const {data, error} = await createApiKey(apiKey.value)
 
-        console.log(data.value)
-        console.log(error.value)
-
-        if(data.value && data.value.body) {
+        if(data.value?.body) {
             ApiKeys.value = [data.value.body]
             apiKey.value = ""
-            await createAssistant()
+            await handleCreateAssistant()
         }
 
         if(error.value) {
@@ -79,45 +70,21 @@ import { ElNotification } from 'element-plus'
         }
     }
 
-    const createAssistant = async () => {
-        const {data, error} = await customFetch<any, any>('/api/assistant', {
-            method: 'post'
-        })
+    const handleCreateAssistant = async () => {
+        const {data, error} = await createAssistant()
         if(data.value) {
             emits('setAssistants', [data.value.body])
         }
-        console.log(data.value)
-        console.log(error.value)
-    }
 
-    const deleteApiKey = async (id: number) => {
-        const {data, error} = await customFetch('/api/apiKey', {
-            method: "delete",
-            query: {
-                id
-            }
-        })
-        if(data.value) {
-            ApiKeys.value = []
+        if(error.value) {
+            ElNotification({
+                title: 'error',
+                message: error.value.statusMessage,
+                type: 'warning',
+            })
         }
-        console.log(data.value)
-        console.log(error.value)
     }
 
-    const deleteAsistants = async (openApiKeyId: number) => {
-        const {data, error} = await customFetch('/api/assistants', {
-            method: "delete",
-            query: {
-                openApiKeyId
-            }
-        })
-        if(data.value) {
-            emits('setAssistants', [])
-
-        }
-        console.log(data.value)
-        console.log(error.value)
-    }
 
     const clearApiKey = (id: number) => {
         ElMessageBox.confirm(
@@ -132,6 +99,8 @@ import { ElNotification } from 'element-plus'
         .then(async () => {
             await deleteAsistants(id)
             await deleteApiKey(id)
+            ApiKeys.value = []
+            emits('setAssistants', [])
             ElMessage({
                 type: 'success',
                 message: 'Delete completed',

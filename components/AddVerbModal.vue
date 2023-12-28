@@ -9,10 +9,10 @@
     >
         <div>
             <el-select v-model="deckId" placeholder="please select a deck">
-                <el-option v-for="(item, index) in decksSelect" ::key="index" :label="item.name" :value="item.id" />
+                <el-option v-for="(item, index) in decks" ::key="index" :label="item.name" :value="item.id" />
             </el-select>
             <div class="mt-8">
-                <el-input v-model="verbValue" placeholder="input verb"/>
+                <el-input v-model="verbData" placeholder="input verb"/>
             </div>
             <div class="mt-8 flex items-center">
                 <el-button type="primary" @click="addVerb" :loading="postLoading">AddVerb</el-button>
@@ -21,39 +21,18 @@
     </el-dialog>
 </template>
 <script setup lang="ts">
-import { ElNotification } from 'element-plus'
-import type { FormInstance, FormRules } from 'element-plus'
-import type {Card} from  '~/types/types'
-import * as wanakana from 'wanakana';
-import {customFetch} from '~/utils/customFetch'
 import _ from 'lodash';
-
-    interface Deck {
-        id: string;
-        name: string;
-        description: string;
-    }
-
-    interface ApiDeckResponse {
-        body: Deck[];
-        statusCode: number;
-        statusMessage: string;
-    }
+import { useDecksFetcher } from '~/composables/useDecksFetcher';
+import { useVerbApi } from '~/composables/useVerbApi';
 
     const {isVisible} = defineProps(['isVisible'])
     const emit = defineEmits(['hideModal'])
-    const decksSelect = ref<Deck[]>([])
     const deckId = ref('')
-    const selectLoading = ref(false)
     const postLoading = ref(false)
-    const verbValue = ref("")
-    
-    const initDeckSelect = async () => {
-        const {data} = await customFetch<ApiDeckResponse, any>('/api/decks')
-        const decks = data.value?.body
-        decks && (decksSelect.value = decks)
-    }
-    initDeckSelect();
+    const verbData = ref("")
+    const {decks, fetchDecks} = useDecksFetcher()
+    const {createVerb} = useVerbApi()
+    await fetchDecks()
 
     const addVerb = async () => {
         if(!deckId.value) {
@@ -63,7 +42,7 @@ import _ from 'lodash';
             })
             return;
         }
-        if(!verbValue.value) {
+        if(!verbData.value) {
             ElMessage({
                 message: "verb undefined",
                 type: 'warning'
@@ -72,13 +51,9 @@ import _ from 'lodash';
             return;
         }
         postLoading.value = true
-        const {data,error} = await customFetch<any, any>('/api/assistantVerb', {
-            method: 'post',
-            body: {
-                deckId: deckId.value,
-                verb: verbValue.value
-            }
-        })
+        const {data,error} = await createVerb(Number(deckId.value), verbData.value)
+
+        
         postLoading.value = false
         if(data.value) {
             ElMessage({
@@ -86,10 +61,16 @@ import _ from 'lodash';
                 message: 'Ver added success',
                 type: 'success'
             })
+
+        }
+        if(error.value) {
+            ElMessage({
+                message: error.value.statusMessage,
+                type: 'warning'
+
+            })
         }
 
-        console.log(data.value.body)
-        console.log(error.value)
     }
 
     const hideModal = () => {

@@ -4,7 +4,7 @@
             <el-select v-model="deckId" class="m-2" placeholder="Select" size="large">
                 <el-option label="Deck Select" value="" />
                 <el-option
-                    v-for="item in deckOptions"
+                    v-for="item in decks"
                     :key="item.id"
                     :label="item.name"
                     :value="item.id"
@@ -65,9 +65,9 @@
     </ClientOnly>
 </template>
 <script setup lang="ts">
-    import {customFetch} from '~/utils/customFetch'
     import { ElNotification } from 'element-plus'
-import { tr } from 'element-plus/es/locale';
+    import { useDecksFetcher } from '~/composables/useDecksFetcher'
+
 
     definePageMeta({
         layout: 'dashboard',
@@ -99,21 +99,14 @@ import { tr } from 'element-plus/es/locale';
         back: string;
     };
 
-    const deckOptions = ref<Deck[]>([])
     const deckId = ref('')
     const jsonString = ref('')
     const dialogVisible = ref<boolean>(false)
     const isValidContent = ref<boolean>(true)
     const verbsArr = ref<any[]>([])
-    const fetchDecks = async () => {
-        const { data, pending, error } = await customFetch<ApiResponse, any>('/api/decks')
-        if(data.value) {
-            deckOptions.value = data.value.body
-        }
-        
-    }
-
-    await fetchDecks();
+    
+    const {loading, decks, fetchDecks } = useDecksFetcher()
+    fetchDecks();
 
     const handleCloseDialog = () => {
         dialogVisible.value = false
@@ -157,7 +150,7 @@ import { tr } from 'element-plus/es/locale';
     }
 
     const uploadData = async () => {
-        const {data, error} = await customFetch<any, any>('/api/addVerbs', {
+        const {data, error} = await useFetch<any, any>('/api/addVerbs', {
             method: "post",
             body: {
                 deckId: deckId.value,

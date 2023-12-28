@@ -29,8 +29,7 @@
     </ClientOnly>
 </template>
 <script setup lang="ts">
-import {customFetch} from '~/utils/customFetch'
-
+import { useOpenApi } from '~/composables/useOpenApi';
     type Option = {
         value: String,
         label: String
@@ -41,48 +40,37 @@ import {customFetch} from '~/utils/customFetch'
     const modelValue = ref('')
     const currentModelValue = ref('')
     const options = ref<Option[]>([])
+    const {getAssistant, updateAssistantModel, getAssistantModels} = useOpenApi()
     watch(() => props.apiKeyExist, async (newVal) => {
-        console.log(newVal)
-        await getAssistant()
-        await getAssistantModels()
+        await handleGetAssistant()
+        await handleGetAssistantModels()
     })
 
-    const getAssistant = async () => {
-        const {data, error} = await customFetch<any,any>('/api/assistant', {method: 'get'})
+    const handleGetAssistant = async () => {
+        const {data, error} = await getAssistant()
         if(data.value) {
             emits('setAssistants', [data.value.body])
             modelValue.value = data.value.body.model
             currentModelValue.value = data.value.body.model
         }
-        console.log(data.value)
         console.log(error.value)
     }
 
-    const getAssistantModels = async () => {
-        const {data, error} = await customFetch<any, any>('/api/openModels',{method: 'get'})
+    const handleGetAssistantModels = async () => {
+        const {data, error} = await getAssistantModels()
         if(data.value) {
             const optionsList = data.value.body.map((item: any) => {return {value: item.id, label: item.id}})
             optionsList.push({value: "gpt-3.5-turbo-1106", label: "gpt-3.5-turbo-1106"})
             options.value = optionsList
         }
-        console.log(data.value)
         console.log(error.value)
     }
 
     const updateModel = async (id: number, assistantId: string) => {
-        console.log(id, assistantId)
-        const {data, error} = await customFetch<any, any>('/api/assistant', {
-            method: 'put',
-            body: {
-                id,
-                assistantId,
-                model: modelValue.value
-            }
-        })
+        const {data, error} = await updateAssistantModel(id, assistantId, modelValue.value)
         if(data.value) {
             currentModelValue.value = modelValue.value
         }
-        console.log(data.value)
         console.log(error.value)
     }
 

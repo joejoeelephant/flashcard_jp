@@ -26,18 +26,15 @@
             </div>
             <div class="flex justify-between">
                 <el-button @click="hideModal">Cancle</el-button>
-                <el-button type="success" @click="updateCard">Confirm</el-button>
+                <el-button type="success" @click="handleUpdateCard">Confirm</el-button>
             </div>
         </div>
     </el-dialog>
 </template>
 <script setup lang="ts">
-import {customFetch} from '~/utils/customFetch'
-import { ElNotification } from 'element-plus'
-
-    // const {isVisible, cardData} =  defineProps(['isVisible', 'cardData']);
+    import { useCardApi } from '~/composables/useCardApi';
     const props =  defineProps(['isVisible', 'cardData']);
-    
+    const {updateCard} = useCardApi()
     const emits = defineEmits(['hideModal'])
 
     const exampleSentence = ref<string>("")
@@ -51,16 +48,9 @@ import { ElNotification } from 'element-plus'
         exampleSentence.value = ""
     }
 
-    const updateCard = async () => {
-        const {data, error} = await customFetch<any, any>('/api/card', {
-            method: 'put',
-            body: {
-                id: props.cardData.id,
-                cardData: {
-                    exampleSentence: exampleSentence.value
-                }
-            }
-        })
+    const handleUpdateCard = async () => {
+        
+        const {data, error} = await updateCard(props.cardData.id, {exampleSentence: exampleSentence.value})
         if(data.value) {
             ElNotification({
                 title: 'success',

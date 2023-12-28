@@ -24,22 +24,10 @@
     </el-dialog>
 </template>
 <script setup lang="ts">
-import {customFetch} from '~/utils/customFetch'
-import { ElNotification } from 'element-plus'
+import { Deck} from '~/types/types'
+
 import _ from 'lodash'
-
-interface Deck {
-    id: string;
-    name: string;
-    description: string;
-    lastReviewed?: Date
-}
-
-interface ApiResponse {
-    body: Deck;
-    statusCode: number;
-    statusMessage: string;
-}
+import {useDeckApi} from '~/composables/useDeckApi'
 
 interface DeckList {
   decksData: any; // or a more specific type if you have it
@@ -51,7 +39,7 @@ interface DeckList {
     const descRef = ref("")
 
     const {decksData, updateDeckList} = inject('deckList') as DeckList
-
+    const {createDeck} = useDeckApi()
     const hideModal = () => {
         emit('hideModal')
     }
@@ -70,15 +58,16 @@ interface DeckList {
 
     const postDeck = async () => {
         if(!checkName()) return;
-        const {data} = await customFetch<ApiResponse, any>('/api/deck', {
-            method: 'post',
-            body: {
-                name: nameRef.value,
-                description: descRef.value
-            }
-        })
-        console.log(data.value?.body)
-        addDeckToList(data.value?.body as Deck)
+        const {data, error} = await createDeck(nameRef.value, descRef.value)
+        if(data.value) {
+            addDeckToList(data.value.body)
+        }
+        if(error.value) {
+            ElMessage({
+                type: 'warning',
+                message: error.value.statusMessage
+            })
+        }
     }
 
     const addDeckToList = (deck: Deck) => {

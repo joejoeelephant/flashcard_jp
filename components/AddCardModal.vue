@@ -19,7 +19,7 @@
                 >
                     <el-form-item label="Decks" prop="deckId" class="w-full">
                         <el-select v-model="cardForm.deckId" placeholder="please select a deck">
-                            <el-option v-for="(item, index) in decksSelect" ::key="index" :label="item.name" :value="item.id" />
+                            <el-option v-for="(item, index) in decks" ::key="index" :label="item.name" :value="item.id" />
                         </el-select>
                     </el-form-item>
                     <el-form-item label="Front" prop="front" class="w-full">
@@ -66,13 +66,12 @@
     </el-dialog>
 </template>
 <script setup lang="ts">
-import { ElNotification } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 import type {Card} from  '~/types/types'
 import * as wanakana from 'wanakana';
-import {customFetch} from '~/utils/customFetch'
 import _ from 'lodash';
-import { da } from 'element-plus/es/locale';
+import { useDecksFetcher } from '~/composables/useDecksFetcher';
+import { useCardApi } from '~/composables/useCardApi';
 
 interface ApiJISHOResponse {
     body: {character: string, meaning: string}[]
@@ -80,27 +79,16 @@ interface ApiJISHOResponse {
     statusMessage: string;
 }
 
-interface Deck {
-    id: string;
-    name: string;
-    description: string;
-}
-
-interface ApiDeckResponse {
-    body: Deck[];
-    statusCode: number;
-    statusMessage: string;
-}
-
-    const {isVisible} = defineProps(['isVisible'])
+    const props = defineProps(['isVisible'])
     const emit = defineEmits(['hideModal'])
-    const decksSelect = ref<Deck[]>([])
     const selectLoading = ref(false)
     const jiShoLoading = ref(false)
     const postLoading = ref(false)
     const cardFormRef = ref<FormInstance>()
     const backList = ref<{character: string, meaning: string}[]>([])
-
+    const {fetchDecks, decks} = useDecksFetcher()
+    await fetchDecks()
+    const {createCard} = useCardApi()
     const cardForm = reactive<Card>({
         front: '',
         back: '',
@@ -116,7 +104,7 @@ interface ApiDeckResponse {
     const fetch_JISHO = async () => {
         if(jiShoLoading.value) return;
         jiShoLoading.value = true
-        const {data} = await customFetch<ApiJISHOResponse, any>(`/api/JiSho`, {
+        const {data} = await useFetch<ApiJISHOResponse, any>(`/api/JiSho`, {
             query: {keyword: cardForm.front}
         })
         jiShoLoading.value = false
@@ -125,14 +113,6 @@ interface ApiDeckResponse {
         backList.value = data.value?.body || []
         console.log(data.value?.body)
     }
-
-    const initDeckSelect = async () => {
-        const {data} = await customFetch<ApiDeckResponse, any>('/api/decks')
-        const decks = data.value?.body
-        decks && (decksSelect.value = decks)
-    }
-
-    initDeckSelect();
    
 
     watch(() => cardForm.frontCharacter, (newVal) => {
@@ -161,8 +141,8 @@ interface ApiDeckResponse {
     const postCard = async () => {
         if(postLoading.value) return;
         postLoading.value = true
-        const cardData = _.cloneDeep(cardForm);;
-        const {data, error} = await customFetch<any, any>('/api/card', {method: 'post', body: {cardData}})
+        const cardData = _.cloneDeep(cardForm);//this is necessary
+        const {data, error} = await createCard(cardData)
         postLoading.value = false
         resetForm()
         if(data.value) {
