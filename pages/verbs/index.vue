@@ -50,7 +50,7 @@
     const deckId = ref(1)
     const { decks, fetchDecks } = useDecksFetcher()
     const { verbs, loading, fetchVerbs } = useVerbsFetcher()
-    const {deleteItem} = useVerbItemDeleter()
+    const {deleteItem} = useVerbApi()
     await fetchDecks()
     await fetchVerbs(deckId.value)
 
