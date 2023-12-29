@@ -42,8 +42,8 @@
     const isVisible = ref(false)
     const ruleFormRef = ref<FormInstance>()
     const ruleForm = reactive({
-        pass: 'gbgbgatw',
-        email: 'admin@qq.com',
+        pass: '',
+        email: '',
     })
 
     const showModal = () => {

@@ -25,9 +25,6 @@
                 <el-button type="primary" :disabled="loading" @click="submitForm(ruleFormRef)">Submit</el-button>
                 <el-button :disabled="loading" @click="resetForm(ruleFormRef)">Reset</el-button>
             </el-form-item>
-            <div>
-                <el-button @click="clearUsers">clearUsers</el-button>
-            </div>
         </el-form>
     </div>
 </template>
